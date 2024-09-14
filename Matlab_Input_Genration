@@ -1,0 +1,50 @@
+clear all; close all;
+fs= 5;
+Amp = 1;
+t= 0:1/fs:2*pi;  % time vector
+sine_wave = Amp*sin(t);
+figure()
+plot(t, sine_wave);
+xlabel('\bf Time');
+ylabel('\bf Amplitude');
+title('Sine Wave ');
+ 
+% Add a noise
+a= 0.1;  % upper limit 
+b= 0;    % lower limit
+noise = (b-a).*rand(length(sine_wave),1)+ a; noise = noise';
+sine_noise= (sine_wave + noise);
+sine_norm = sine_noise / max(abs(sine_noise));
+figure(); plot(1:length(sine_norm), sine_norm);
+xlabel('\bf Time');
+ylabel('\bf Amplitude');
+title('Sine Wave + Noise : Scaled Signal');
+ 
+ 
+ %convert from real to integers
+total_wordlength = 16;
+scaling =7;
+sine_noise_integers =round(sine_norm.*(2^scaling));
+figure();
+plot(1:length(sine_noise_integers), sine_noise_integers);
+xlabel('\bf Time');
+ylabel('\bf Amplitude');
+title('\bf Sine Wave + Noise : Scaled noise'  );
+  
+%convert from integers to binary
+sine_noise_in_binary_signed=  dec2bin(mod((sine_noise_integers), 2^total_wordlength),total_wordlength);
+yy= cellstr(sine_noise_in_binary_signed);
+fid = fopen('signal.data', 'wt');
+fprintf(fid, '8s \n' , yy{:});
+disp('text file for signal finished');
+ 
+% Design a moving average filter
+order = 3;
+length = order +1 % order = l-1
+coeff= 1/length*ones(1, length);
+coef_integars = round(coeff.*(2^scaling));
+coeff_binary = dec2bin(coef_integars, total_wordlength);
+y = cellstr(coeff_binary);
+fid = fopen('coef.data',  'wt');
+fprintf(fid, '%8s\n' , y{:});
+disp('text file write finished')
